@@ -50,10 +50,13 @@ const Compass: React.FC<CompassProps> = ({ direction, heading, accuracy }) => {
   }, [accuracy]);
   
   useEffect(() => {
-    const targetRoseRot = -(heading ?? 0);
-    // The Qibla direction is calculated relative to True North.
-    // Applying a 10-degree counter-clockwise correction to fix the reported clockwise error.
-    const targetPointerRot = direction - 10;
+    const currentHeading = heading ?? 0;
+    const targetRoseRot = -currentHeading;
+    // The pointer is a child of the rotating rose. To make it point to the absolute
+    // Qibla direction, we must counteract the rose's rotation (-heading) by adding
+    // the heading back, then apply the qibla direction.
+    // Final pointer rotation = direction + heading.
+    const targetPointerRot = direction + currentHeading;
 
     // Linear interpolation function that handles angle wrapping for shortest path
     const lerp = (start: number, end: number, amt: number) => {
@@ -80,6 +83,7 @@ const Compass: React.FC<CompassProps> = ({ direction, heading, accuracy }) => {
             roseRef.current.style.transform = `rotate(${animatedRoseRot.current}deg)`;
         }
         if (pointerRef.current) {
+            // This rotation is relative to the parent (the rose), which is also rotating.
             pointerRef.current.style.transform = `rotate(${animatedPointerRot.current}deg)`;
         }
 
@@ -147,12 +151,31 @@ const Compass: React.FC<CompassProps> = ({ direction, heading, accuracy }) => {
             
             <div className={`w-4 h-4 bg-green-700 dark:bg-green-500 rounded-full border-2 border-white dark:border-zinc-900 z-10 ${isLive ? 'animate-pulse' : ''}`}></div>
         </div>
-        </div>
+        
+        {/* Prominent Calibration Overlay */}
         {showCalibration && (
-            <div className="text-center text-sm text-yellow-700 dark:text-yellow-400 bg-yellow-500/10 dark:bg-yellow-400/10 p-2 rounded-md max-w-xs animate-pulse">
-                <p>Compass interference. Wave device in a figure 8 pattern to calibrate.</p>
+            <div className="absolute inset-0 z-20 bg-red-900/50 dark:bg-red-950/70 backdrop-blur-sm rounded-full flex flex-col items-center justify-center text-center p-4 animate-pulse">
+                {/* Figure 8 Icon SVG */}
+                <svg
+                    className="w-12 h-12 text-white/80 mb-3"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                >
+                    <path d="M18.15 15.8C19.95 14.53 21 12.86 21 11c0-2.21-1.79-4-4-4s-4 1.79-4 4c0 1.48.81 2.75 2 3.45" />
+                    <path d="M5.85 8.2C4.05 9.47 3 11.14 3 13c0 2.21 1.79 4 4 4s4-1.79 4-4c0-1.48-.81-2.75-2-3.45" />
+                    <path d="M14 11h-4" />
+                </svg>
+                <h3 className="font-bold text-lg text-white">Calibration Required</h3>
+                <p className="text-white/90 text-sm max-w-xs">
+                    Wave device in a figure-8 pattern.
+                </p>
             </div>
         )}
+        </div>
     </div>
   );
 };
