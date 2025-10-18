@@ -9,6 +9,7 @@ import MapView from './components/MapView';
 import MapIcon from './components/MapIcon';
 import CompassIcon from './components/CompassIcon';
 import LocationModal from './components/LocationModal';
+import StreetView from './components/StreetView';
 import type { Coordinates } from './types';
 import { calculateQiblaDirection } from './utils';
 
@@ -118,6 +119,8 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [isStreetViewOpen, setIsStreetViewOpen] = useState(false);
+
 
   useEffect(() => {
     if (theme === 'auto') {
@@ -217,7 +220,7 @@ const App: React.FC = () => {
     handleAutoDetectLocation();
   }, [handleAutoDetectLocation]);
 
-  const handleNewLocationSet = async (coords: Coordinates) => {
+  const handleNewLocationSet = useCallback(async (coords: Coordinates) => {
     if (isLocationModalOpen) setIsLocationModalOpen(false);
     setViewMode('compass');
     setIsLoading(true);
@@ -225,11 +228,12 @@ const App: React.FC = () => {
     setUserAddress(null);
     setQiblaDirection(null);
     
-    setTimeout(async () => {
-        await processNewCoordinates(coords);
-        setIsLoading(false);
-    }, 100);
-  };
+    // Use a promise-based timeout for cleaner async flow and to allow UI to update
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    await processNewCoordinates(coords);
+    setIsLoading(false);
+  }, [isLocationModalOpen, processNewCoordinates]);
   
   const renderContent = () => {
     if (isLoading) {
@@ -245,6 +249,7 @@ const App: React.FC = () => {
                     <MapView 
                         userLocation={userLocation}
                         onLocationSet={handleNewLocationSet}
+                        onOpenStreetView={() => setIsStreetViewOpen(true)}
                     />
                     <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-10">
                        <LocationInfo
@@ -310,6 +315,9 @@ const App: React.FC = () => {
 
       <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} />
       <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} onLocationSet={handleNewLocationSet} />
+      {isStreetViewOpen && userLocation && (
+          <StreetView location={userLocation} onClose={() => setIsStreetViewOpen(false)} />
+      )}
     </div>
   );
 };

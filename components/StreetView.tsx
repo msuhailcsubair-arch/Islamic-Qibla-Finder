@@ -50,24 +50,24 @@ const StreetView: React.FC<StreetViewProps> = ({ location, onClose }) => {
         generateStreetViewImage(location);
     }, [location, generateStreetViewImage]);
 
-    const handleMouseDown = (e: React.MouseEvent) => {
+    const handleMouseDown = useCallback((e: React.MouseEvent) => {
         isDragging.current = true;
         previousPosition.current.x = e.clientX;
-        if(viewRef.current) viewRef.current.style.cursor = 'grabbing';
-    };
+        if (viewRef.current) viewRef.current.style.cursor = 'grabbing';
+    }, []);
 
-    const handleMouseMove = (e: React.MouseEvent) => {
+    const handleMouseMove = useCallback((e: React.MouseEvent) => {
         if (!isDragging.current || !viewRef.current) return;
         const deltaX = e.clientX - previousPosition.current.x;
         backgroundPositionX.current -= deltaX * 0.5; // Adjust sensitivity
         viewRef.current.style.backgroundPositionX = `${backgroundPositionX.current}px`;
         previousPosition.current.x = e.clientX;
-    };
+    }, []);
     
-    const handleMouseUp = () => {
+    const handleMouseUp = useCallback(() => {
         isDragging.current = false;
-        if(viewRef.current) viewRef.current.style.cursor = 'grab';
-    };
+        if (viewRef.current) viewRef.current.style.cursor = 'grab';
+    }, []);
 
     return (
         <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">

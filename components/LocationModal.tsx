@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from 'react';
+import React, { useState, Fragment, useCallback } from 'react';
 import { GoogleGenAI, Type } from "@google/genai";
 import type { Coordinates } from '../types';
 
@@ -20,7 +20,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose, onLocati
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const getCoordinatesFromAddress = async (address: string): Promise<Coordinates | null> => {
+    const getCoordinatesFromAddress = useCallback(async (address: string): Promise<Coordinates | null> => {
         if (!address.trim()) return null;
         
         setIsLoading(true);
@@ -61,16 +61,16 @@ const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose, onLocati
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         const coords = await getCoordinatesFromAddress(locationInput);
         if (coords) {
             onLocationSet(coords);
             setLocationInput('');
         }
-    };
+    }, [getCoordinatesFromAddress, locationInput, onLocationSet]);
 
     return (
         <Fragment>

@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Coordinates } from '../types';
 import { calculateQiblaDirection } from '../utils';
+import PegmanIcon from './PegmanIcon';
 
 // Fix: Declare google on the window object to inform TypeScript that it will be available at runtime.
 declare global {
@@ -12,13 +13,14 @@ declare global {
 interface MapViewProps {
   userLocation: Coordinates;
   onLocationSet: (coords: Coordinates) => void;
+  onOpenStreetView: () => void;
 }
 
 // Helper to load the Google Maps script
-const loadGoogleMapsScript = (callback: () => void) => {
+const loadGoogleMapsScript = (onSuccess: () => void, onError: (message: string) => void) => {
   const existingScript = document.getElementById('googleMapsScript');
   if (window.google && window.google.maps) {
-    callback();
+    onSuccess();
     return;
   }
 
@@ -31,36 +33,50 @@ const loadGoogleMapsScript = (callback: () => void) => {
     document.body.appendChild(script);
     script.onload = () => {
       if (window.google && window.google.maps) {
-        callback();
+        onSuccess();
+      } else {
+        onError("Google Maps loaded, but the 'maps' object is not available.");
       }
     };
     script.onerror = () => {
-      console.error("Google Maps script could not be loaded.");
+      onError("Google Maps script could not be loaded. Please check your network connection and ad-blockers.");
     }
   } else {
-      existingScript.addEventListener('load', () => {
+      const loadHandler = () => {
         if(window.google && window.google.maps) {
-            callback();
+            onSuccess();
+        } else {
+            onError("Found existing script, but failed to initialize Google Maps object.");
         }
-      });
+        existingScript.removeEventListener('load', loadHandler);
+      };
+      existingScript.addEventListener('load', loadHandler);
   }
 };
 
 
-const MapView: React.FC<MapViewProps> = ({ userLocation, onLocationSet }) => {
+const MapView: React.FC<MapViewProps> = ({ userLocation, onLocationSet, onOpenStreetView }) => {
   const [mapCenter, setMapCenter] = useState<Coordinates>(userLocation);
   const [zoom, setZoom] = useState(15);
   const [qiblaDirection, setQiblaDirection] = useState(0);
   const [isApiLoaded, setIsApiLoaded] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   // Fix: Use 'any' for the map instance since Google Maps types are not installed. This resolves the 'Cannot find namespace google' error.
   const mapInstanceRef = useRef<any | null>(null);
 
   useEffect(() => {
-    loadGoogleMapsScript(() => {
-      setIsApiLoaded(true);
-    });
+    loadGoogleMapsScript(
+      () => {
+        setIsApiLoaded(true);
+        setMapError(null);
+      },
+      (errorMessage) => {
+        console.error(errorMessage);
+        setMapError(errorMessage);
+      }
+    );
   }, []);
   
   useEffect(() => {
@@ -90,7 +106,12 @@ const MapView: React.FC<MapViewProps> = ({ userLocation, onLocationSet }) => {
             }
         });
     }
-  }, [isApiLoaded, mapCenter, zoom]);
+    // This effect should run only once to initialize the map.
+    // We disable the lint rule because mapCenter and zoom are only used
+    // for the initial setup and we don't want to re-run this effect
+    // when they change. Listeners handle state updates after initialization.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isApiLoaded]);
 
 
   useEffect(() => {
@@ -121,8 +142,27 @@ const MapView: React.FC<MapViewProps> = ({ userLocation, onLocationSet }) => {
     }
   };
 
-  return (
-    <div className="w-full h-full bg-blue-200 dark:bg-slate-900 relative flex items-center justify-center overflow-hidden">
+  const renderContent = () => {
+    if (mapError) {
+      return (
+        <div className="text-center p-6 bg-red-500/10 dark:bg-red-900/20 border border-red-500/30 rounded-lg max-w-sm">
+          <h3 className="font-bold text-red-600 dark:text-red-400">Map Unavailable</h3>
+          <p className="mt-2 text-sm text-gray-700 dark:text-slate-300">{mapError}</p>
+        </div>
+      );
+    }
+
+    if (!isApiLoaded) {
+      return (
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-8 h-8 border-2 border-t-2 border-gray-300 dark:border-slate-700 border-t-green-600 dark:border-t-green-500 rounded-full animate-spin"></div>
+          <p className="text-gray-600 dark:text-slate-400">Loading Map...</p>
+        </div>
+      );
+    }
+
+    return (
+      <>
         <div ref={mapContainerRef} className="w-full h-full" />
         
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20" aria-hidden="true">
@@ -144,6 +184,12 @@ const MapView: React.FC<MapViewProps> = ({ userLocation, onLocationSet }) => {
         </div>
 
         <div className="absolute bottom-5 right-5 flex flex-col gap-2 z-30">
+             <button
+                onClick={onOpenStreetView}
+                className="w-12 h-12 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-full p-2 text-gray-800 dark:text-slate-200 shadow-lg hover:bg-white dark:hover:bg-slate-800 transition" aria-label="Open Street View"
+            >
+                <PegmanIcon className="w-full h-full" />
+            </button>
             <button
                 onClick={handleZoomIn} 
                 className="w-12 h-12 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-full text-2xl font-bold text-gray-800 dark:text-slate-200 shadow-lg hover:bg-white dark:hover:bg-slate-800 transition" aria-label="Zoom in"
@@ -166,6 +212,13 @@ const MapView: React.FC<MapViewProps> = ({ userLocation, onLocationSet }) => {
                 Set Location
             </button>
         </div>
+      </>
+    );
+  };
+
+  return (
+    <div className="w-full h-full bg-gray-200 dark:bg-slate-800 relative flex items-center justify-center overflow-hidden">
+        {renderContent()}
     </div>
   );
 };
