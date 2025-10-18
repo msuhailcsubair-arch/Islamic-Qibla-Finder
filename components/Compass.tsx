@@ -39,12 +39,16 @@ const Compass: React.FC<CompassProps> = ({ direction, heading, accuracy, showCal
   
   useEffect(() => {
     const currentHeading = heading ?? 0;
-    const targetRoseRot = -currentHeading;
-    // The pointer is a child of the rotating rose. To make it point to the absolute
-    // Qibla direction, we must counteract the rose's rotation (-heading) by adding
-    // the heading back, then apply the qibla direction.
-    // Final pointer rotation = direction + heading.
-    const targetPointerRot = direction + currentHeading;
+    
+    // Per the request, the Qibla pointer is now "stuck" to the NW position (315°).
+    const targetPointerRot = 315;
+
+    // The entire compass rose rotates to align the NW mark (where the pointer is)
+    // with the correct Qibla direction, relative to the phone's current heading.
+    // The final angle of the pointer on the screen needs to be (direction - heading).
+    // Since the pointer is fixed at 315° on the rose, the rose's 0° (N) mark must rotate 
+    // to (direction - heading - 315) for the pointer to align correctly.
+    const targetRoseRot = direction - currentHeading - 315;
 
     // Linear interpolation function that handles angle wrapping for shortest path
     const lerp = (start: number, end: number, amt: number) => {
@@ -93,7 +97,7 @@ const Compass: React.FC<CompassProps> = ({ direction, heading, accuracy, showCal
     <div className="flex flex-col items-center gap-4">
         <div className="relative w-64 h-64 md:w-80 md:h-80 transition-all duration-500">
         
-        {/* Static North arrow indicator */}
+        {/* Static device top indicator */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10" aria-hidden="true">
             <div className="w-0 h-0 
                 border-l-[8px] border-l-transparent
@@ -106,10 +110,17 @@ const Compass: React.FC<CompassProps> = ({ direction, heading, accuracy, showCal
             ref={roseRef}
             className="w-full h-full rounded-full bg-white dark:bg-zinc-900 border-4 border-gray-200 dark:border-zinc-800 shadow-2xl flex items-center justify-center text-gray-700 dark:text-zinc-300 font-bold"
         >
+            {/* Cardinal Directions */}
             <span className="absolute top-3 text-lg md:text-xl">N</span>
             <span className="absolute bottom-3 text-lg md:text-xl">S</span>
             <span className="absolute left-3 text-lg md:text-xl">W</span>
             <span className="absolute right-3 text-lg md:text-xl">E</span>
+
+            {/* Intercardinal Directions */}
+            <span className="absolute text-base md:text-lg" style={{ top: '14.6%', right: '14.6%' }}>NE</span>
+            <span className="absolute text-base md:text-lg" style={{ bottom: '14.6%', right: '14.6%' }}>SE</span>
+            <span className="absolute text-base md:text-lg" style={{ bottom: '14.6%', left: '14.6%' }}>SW</span>
+            <span className="absolute text-base md:text-lg" style={{ top: '14.6%', left: '14.6%' }}>NW</span>
             
             {/* Degree markers */}
             {[0, 30, 60, 120, 150, 210, 240, 300, 330].map((deg) => (
