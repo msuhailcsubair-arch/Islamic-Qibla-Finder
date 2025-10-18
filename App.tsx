@@ -10,7 +10,6 @@ import MapView from './components/MapView';
 import MapIcon from './components/MapIcon';
 import CompassIcon from './components/CompassIcon';
 import LocationModal from './components/LocationModal';
-import StreetView from './components/StreetView';
 import ErrorDisplay from './components/ErrorDisplay';
 import LocationInfo from './components/LocationInfo';
 import type { Coordinates, Theme, AccuracyMode, GeolocationError } from './types';
@@ -22,8 +21,6 @@ const App: React.FC = () => {
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [userAddress, setUserAddress] = useState<string | null>(null);
   const [qiblaDirection, setQiblaDirection] = useState<number | null>(null);
-  const [deviceHeading, setDeviceHeading] = useState<number | null>(null);
-  const [compassAccuracy, setCompassAccuracy] = useState<number | null>(null);
   const [error, setError] = useState<GeolocationError | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [viewMode, setViewMode] = useState<'compass' | 'map'>('compass');
@@ -32,8 +29,6 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-  const [isStreetViewOpen, setIsStreetViewOpen] = useState(false);
-  const [showCalibration, setShowCalibration] = useState(false);
 
 
   useEffect(() => {
@@ -44,36 +39,6 @@ const App: React.FC = () => {
       document.documentElement.classList.toggle('dark', theme === 'dark');
     }
   }, [theme]);
-
-  // Effect to handle device orientation for live compass
-  useEffect(() => {
-    const handleOrientation = (event: DeviceOrientationEvent) => {
-      // Use webkitCompassHeading for iOS compatibility
-      const heading = (event as any).webkitCompassHeading ?? event.alpha;
-      const accuracy = (event as any).webkitCompassAccuracy;
-      
-      if (heading !== null) {
-        setDeviceHeading(heading);
-      }
-      if (accuracy !== undefined) {
-        setCompassAccuracy(accuracy);
-        // Logic to detect when compass accuracy is low
-        if (accuracy < 0 || accuracy > 30) {
-            setShowCalibration(true);
-        } else {
-            setShowCalibration(false);
-        }
-      }
-    };
-    
-    if (window.DeviceOrientationEvent) {
-      window.addEventListener('deviceorientation', handleOrientation);
-    }
-
-    return () => {
-      window.removeEventListener('deviceorientation', handleOrientation);
-    };
-  }, []);
 
   const getAddressFromCoordinates = useCallback(async (coords: Coordinates) => {
     try {
@@ -173,11 +138,7 @@ const App: React.FC = () => {
         if (viewMode === 'map') {
             return (
                 <div className="flex-grow w-full h-full relative">
-                    <MapView 
-                        userLocation={userLocation}
-                        onLocationSet={handleNewLocationSet}
-                        onOpenStreetView={() => setIsStreetViewOpen(true)}
-                    />
+                    <MapView />
                     <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-10">
                        <LocationInfo
                            direction={qiblaDirection}
@@ -192,7 +153,7 @@ const App: React.FC = () => {
         }
         return (
             <div className="flex flex-col items-center justify-center gap-8 p-4">
-                <Compass direction={qiblaDirection} heading={deviceHeading} accuracy={compassAccuracy} showCalibration={showCalibration} />
+                <Compass />
                 <LocationInfo 
                     direction={qiblaDirection} 
                     address={userAddress} 
@@ -248,9 +209,6 @@ const App: React.FC = () => {
 
       <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} />
       <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} onLocationSet={handleNewLocationSet} />
-      {isStreetViewOpen && userLocation && (
-          <StreetView location={userLocation} onClose={() => setIsStreetViewOpen(false)} />
-      )}
     </div>
   );
 };
