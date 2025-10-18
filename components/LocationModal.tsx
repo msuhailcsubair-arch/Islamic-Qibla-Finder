@@ -9,8 +9,8 @@ interface LocationModalProps {
 }
 
 const ModalSpinner: React.FC = () => (
-    <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-slate-400">
-        <div className="w-5 h-5 border-2 border-t-2 border-gray-300 dark:border-slate-700 border-t-green-600 dark:border-t-green-500 rounded-full animate-spin"></div>
+    <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-zinc-400">
+        <div className="w-5 h-5 border-2 border-t-2 border-gray-300 dark:border-zinc-700 border-t-green-600 dark:border-t-green-500 rounded-full animate-spin"></div>
         <span>Searching...</span>
     </div>
 );
@@ -86,17 +86,17 @@ const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose, onLocati
                 aria-modal="true"
                 aria-labelledby="location-modal-title"
             >
-                <div className={`bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-md transform transition-all duration-300 ${isOpen ? 'scale-100' : 'scale-95'}`}>
-                    <div className="p-5 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center">
-                        <h2 id="location-modal-title" className="text-xl font-bold text-gray-800 dark:text-slate-200">Set Location Manually</h2>
-                        <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-green-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                <div className={`bg-white dark:bg-zinc-900 rounded-lg shadow-xl w-full max-w-md transform transition-all duration-300 ${isOpen ? 'scale-100' : 'scale-95'}`}>
+                    <div className="p-5 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center">
+                        <h2 id="location-modal-title" className="text-xl font-bold text-gray-800 dark:text-zinc-200">Set Location Manually</h2>
+                        <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-green-600 transform transition-transform hover:scale-110">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </div>
 
                     <form onSubmit={handleSubmit} className="p-6 space-y-4">
                         <div>
-                            <label htmlFor="location-input" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                            <label htmlFor="location-input" className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">
                                 Enter a city, address, or landmark
                             </label>
                             <input
@@ -105,7 +105,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose, onLocati
                                 value={locationInput}
                                 onChange={(e) => setLocationInput(e.target.value)}
                                 placeholder="e.g., Tokyo, Japan"
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-200"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-200"
                                 required
                             />
                         </div>
@@ -117,7 +117,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose, onLocati
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="px-6 py-2 bg-green-700 text-white font-bold rounded-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 disabled:bg-green-900 disabled:cursor-not-allowed transition-colors"
+                                className="px-6 py-2 bg-green-700 text-white font-bold rounded-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 disabled:bg-green-900 disabled:cursor-not-allowed transition-all transform hover:scale-105"
                             >
                                 Find Qibla
                             </button>

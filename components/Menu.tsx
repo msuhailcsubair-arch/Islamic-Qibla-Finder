@@ -31,19 +31,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onAutoDetect, onManu
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-72 bg-white dark:bg-slate-900 shadow-xl z-40 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed top-0 right-0 h-full w-72 bg-white dark:bg-zinc-900 shadow-xl z-40 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="sidebar-title"
       >
-        <div className="p-4 flex justify-between items-center border-b border-gray-200 dark:border-slate-800">
-          <h2 id="sidebar-title" className="text-lg font-semibold text-gray-800 dark:text-slate-200">Menu</h2>
+        <div className="p-4 flex justify-between items-center border-b border-gray-200 dark:border-zinc-800">
+          <h2 id="sidebar-title" className="text-lg font-semibold text-gray-800 dark:text-zinc-200">Menu</h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-green-600"
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-green-600 transform transition-transform hover:scale-110"
             aria-label="Close menu"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -52,33 +52,33 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onAutoDetect, onManu
         <nav className="p-4">
           <ul>
             <li className="mb-2">
-              <button onClick={onAutoDetect} className="w-full flex items-center p-3 text-left rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 transition-colors">
+              <button onClick={onAutoDetect} className="w-full flex items-center p-3 text-left rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-300 transition-all transform hover:translate-x-1">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 Use My Location
               </button>
             </li>
              <li className="mb-2">
-              <button onClick={onManualSet} className="w-full flex items-center p-3 text-left rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 transition-colors">
+              <button onClick={onManualSet} className="w-full flex items-center p-3 text-left rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-300 transition-all transform hover:translate-x-1">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 Set Location Manually
               </button>
             </li>
              <li className="mb-2">
-              <button onClick={onAbout} className="w-full flex items-center p-3 text-left rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 transition-colors">
+              <button onClick={onAbout} className="w-full flex items-center p-3 text-left rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-300 transition-all transform hover:translate-x-1">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 About
               </button>
             </li>
           </ul>
 
-           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-800">
-             <label className="px-3 text-sm font-semibold text-gray-500 dark:text-slate-400">Accuracy</label>
-             <div className="mt-2 flex rounded-md bg-gray-100 dark:bg-slate-800 p-1">
+           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-zinc-800">
+             <label className="px-3 text-sm font-semibold text-gray-500 dark:text-zinc-400">Accuracy</label>
+             <div className="mt-2 flex rounded-md bg-gray-100 dark:bg-zinc-800 p-1">
                  {(['high', 'medium', 'low'] as AccuracyMode[]).map(accuracy => (
                      <button
                         key={accuracy}
                         onClick={() => onChangeAccuracy(accuracy)}
-                        className={`w-1/3 py-2 text-sm font-medium rounded capitalize transition-colors ${currentAccuracy === accuracy ? 'bg-white dark:bg-slate-700 text-green-700 dark:text-green-500 shadow' : 'text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'}`}
+                        className={`w-1/3 py-2 text-sm font-medium rounded capitalize transition-colors ${currentAccuracy === accuracy ? 'bg-white dark:bg-zinc-700 text-green-700 dark:text-green-500 shadow' : 'text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'}`}
                      >
                         {accuracy}
                      </button>
@@ -86,14 +86,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onAutoDetect, onManu
              </div>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-800">
-             <label className="px-3 text-sm font-semibold text-gray-500 dark:text-slate-400">Theme</label>
-             <div className="mt-2 flex rounded-md bg-gray-100 dark:bg-slate-800 p-1">
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-zinc-800">
+             <label className="px-3 text-sm font-semibold text-gray-500 dark:text-zinc-400">Theme</label>
+             <div className="mt-2 flex rounded-md bg-gray-100 dark:bg-zinc-800 p-1">
                  {(['auto', 'light', 'dark'] as Theme[]).map(theme => (
                      <button
                         key={theme}
                         onClick={() => onChangeTheme(theme)}
-                        className={`w-1/3 py-2 text-sm font-medium rounded capitalize transition-colors ${currentTheme === theme ? 'bg-white dark:bg-slate-700 text-green-700 dark:text-green-500 shadow' : 'text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'}`}
+                        className={`w-1/3 py-2 text-sm font-medium rounded capitalize transition-colors ${currentTheme === theme ? 'bg-white dark:bg-zinc-700 text-green-700 dark:text-green-500 shadow' : 'text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'}`}
                      >
                         <div className="flex justify-center items-center">
                             <ThemeIcon theme={theme} />

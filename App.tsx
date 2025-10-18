@@ -65,7 +65,7 @@ const ErrorDisplay: React.FC<{ error: GeolocationError; onRetry: () => void }> =
 
       <button
         onClick={onRetry}
-        className="mt-6 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-full transition-all duration-300"
+        className="mt-6 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 transform hover:scale-105"
       >
         Try Again
       </button>
@@ -77,25 +77,25 @@ const ErrorDisplay: React.FC<{ error: GeolocationError; onRetry: () => void }> =
 const LocationInfo: React.FC<{ direction: number; address: string; onRecalculate: () => void; variant?: 'default' | 'mapOverlay' }> = ({ direction, address, onRecalculate, variant = 'default' }) => {
   if (variant === 'mapOverlay') {
     return (
-      <div className="text-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-lg p-3 rounded-lg w-full">
+      <div className="text-center bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-lg p-3 rounded-lg w-full">
         <h2 className="text-2xl font-bold text-green-700 dark:text-green-500">{direction.toFixed(2)}°</h2>
-        <p className="text-xs text-gray-600 dark:text-slate-400">{address}</p>
+        <p className="text-xs text-gray-600 dark:text-zinc-400">{address}</p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col items-center gap-4 w-full">
-        <div className="text-center bg-white dark:bg-slate-900 shadow-sm p-4 rounded-lg w-full max-w-md">
+        <div className="text-center bg-white dark:bg-zinc-900 shadow-sm p-4 rounded-lg w-full max-w-md">
             <h2 className="text-3xl font-bold text-green-700 dark:text-green-500">{direction.toFixed(2)}°</h2>
-            <p className="text-gray-500 dark:text-slate-400">From True North</p>
-            <div className="text-xs text-gray-500 dark:text-slate-500 mt-3 border-t border-gray-200 dark:border-slate-800 pt-2">
-                Your Location: <span className="text-gray-700 dark:text-slate-300">{address}</span>
+            <p className="text-gray-500 dark:text-zinc-400">From True North</p>
+            <div className="text-xs text-gray-500 dark:text-zinc-500 mt-3 border-t border-gray-200 dark:border-zinc-800 pt-2">
+                Your Location: <span className="text-gray-700 dark:text-zinc-300">{address}</span>
             </div>
         </div>
         <button
             onClick={onRecalculate}
-            className="bg-gray-200 hover:bg-gray-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 font-bold py-2 px-6 rounded-full transition-all duration-300"
+            className="bg-gray-200 hover:bg-gray-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-800 dark:text-zinc-200 font-bold py-2 px-6 rounded-full transition-all duration-300 transform hover:scale-105"
         >
             Recalculate
         </button>
@@ -111,6 +111,7 @@ const App: React.FC = () => {
   const [userAddress, setUserAddress] = useState<string | null>(null);
   const [qiblaDirection, setQiblaDirection] = useState<number | null>(null);
   const [deviceHeading, setDeviceHeading] = useState<number | null>(null);
+  const [compassAccuracy, setCompassAccuracy] = useState<number | null>(null);
   const [error, setError] = useState<GeolocationError | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [viewMode, setViewMode] = useState<'compass' | 'map'>('compass');
@@ -136,8 +137,13 @@ const App: React.FC = () => {
     const handleOrientation = (event: DeviceOrientationEvent) => {
       // Use webkitCompassHeading for iOS compatibility
       const heading = (event as any).webkitCompassHeading ?? event.alpha;
+      const accuracy = (event as any).webkitCompassAccuracy;
+      
       if (heading !== null) {
         setDeviceHeading(heading);
+      }
+      if (accuracy !== undefined) {
+        setCompassAccuracy(accuracy);
       }
     };
     
@@ -264,7 +270,7 @@ const App: React.FC = () => {
         }
         return (
             <div className="flex flex-col items-center justify-center gap-8 p-4">
-                <Compass direction={qiblaDirection} heading={deviceHeading} />
+                <Compass direction={qiblaDirection} heading={deviceHeading} accuracy={compassAccuracy} />
                 <LocationInfo direction={qiblaDirection} address={userAddress} onRecalculate={handleAutoDetectLocation} />
             </div>
         );
@@ -273,7 +279,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-zinc-100">
       <Header onMenuClick={() => setIsSidebarOpen(true)} />
       
       <main className="flex-grow flex flex-col items-center justify-center overflow-hidden">
@@ -282,17 +288,17 @@ const App: React.FC = () => {
 
       {!isLoading && !error && (
          <footer className={`flex-shrink-0 w-full p-2 flex justify-end pr-5 z-20 ${viewMode === 'map' ? 'absolute bottom-0 bg-transparent' : 'relative'}`}>
-             <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm p-1 rounded-full flex shadow-lg">
+             <div className="bg-white/70 dark:bg-zinc-900/70 backdrop-blur-sm p-1 rounded-full flex shadow-lg">
                  <button 
                      onClick={() => setViewMode('compass')}
-                     className={`p-3 rounded-full transition-colors ${viewMode === 'compass' ? 'bg-green-700 text-white' : 'text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800'}`}
+                     className={`p-3 rounded-full transition-all transform hover:scale-110 ${viewMode === 'compass' ? 'bg-green-700 text-white' : 'text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-800'}`}
                      aria-label="Switch to Compass View"
                  >
                      <CompassIcon />
                  </button>
                  <button 
                      onClick={() => setViewMode('map')}
-                     className={`p-3 rounded-full transition-colors ${viewMode === 'map' ? 'bg-green-700 text-white' : 'text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800'}`}
+                     className={`p-3 rounded-full transition-all transform hover:scale-110 ${viewMode === 'map' ? 'bg-green-700 text-white' : 'text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-800'}`}
                      aria-label="Switch to Map View"
                  >
                      <MapIcon />

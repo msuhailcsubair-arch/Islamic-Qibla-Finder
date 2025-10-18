@@ -100,7 +100,7 @@ const StreetView: React.FC<StreetViewProps> = ({ location, onClose }) => {
 
             <button
                 onClick={onClose}
-                className="absolute top-4 right-4 bg-black/50 text-white p-3 rounded-full hover:bg-black/80 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="absolute top-4 right-4 bg-black/50 text-white p-3 rounded-full hover:bg-black/80 transition-all transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 aria-label="Close Street View"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
