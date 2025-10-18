@@ -30,6 +30,7 @@ const MapView: React.FC<MapViewProps> = ({ userLocation, onLocationSet, onOpenSt
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any | null>(null);
   const qiblaLineRef = useRef<any | null>(null);
+  const animationIntervalRef = useRef<number | null>(null);
 
   // Effect for loading the Google Maps script and handling authentication errors
   useEffect(() => {
@@ -127,6 +128,40 @@ const MapView: React.FC<MapViewProps> = ({ userLocation, onLocationSet, onOpenSt
     if (qiblaLineRef.current && window.google) {
         const centerCoords = { lat: mapCenter.latitude, lng: mapCenter.longitude };
         qiblaLineRef.current.setPath([centerCoords, KAABA_COORDS]);
+
+        // Clear any ongoing animation from the previous render
+        if (animationIntervalRef.current) {
+            clearInterval(animationIntervalRef.current);
+        }
+
+        let opacity = 0.9;
+        let direction = -1; // -1 for decreasing, 1 for increasing
+
+        // Start a new pulsing animation
+        animationIntervalRef.current = window.setInterval(() => {
+            opacity += direction * 0.02; // Slower, more subtle step
+
+            // Reverse the direction when bounds are reached
+            if (opacity < 0.6 || opacity > 0.9) {
+                direction *= -1;
+            }
+            
+            if (qiblaLineRef.current) {
+                qiblaLineRef.current.setOptions({ strokeOpacity: opacity });
+            }
+        }, 50); // Interval of 50ms for a smooth pulse
+
+        // Cleanup function to stop the animation when the component unmounts
+        // or when this effect re-runs for a new mapCenter.
+        return () => {
+            if (animationIntervalRef.current) {
+                clearInterval(animationIntervalRef.current);
+            }
+            // Optional: reset opacity to a solid value on cleanup
+            if (qiblaLineRef.current) {
+                 qiblaLineRef.current.setOptions({ strokeOpacity: 0.9 });
+            }
+        };
     }
   }, [mapCenter]);
 
@@ -140,20 +175,6 @@ const MapView: React.FC<MapViewProps> = ({ userLocation, onLocationSet, onOpenSt
     }
   }, [onLocationSet]);
   
-  const handleZoomIn = useCallback(() => {
-    if (mapInstanceRef.current) {
-        const currentZoom = mapInstanceRef.current.getZoom();
-        mapInstanceRef.current.setZoom(currentZoom + 1);
-    }
-  }, []);
-
-  const handleZoomOut = useCallback(() => {
-    if (mapInstanceRef.current) {
-        const currentZoom = mapInstanceRef.current.getZoom();
-        mapInstanceRef.current.setZoom(currentZoom - 1);
-    }
-  }, []);
-
   const renderContent = () => {
     if (mapError) {
       return (
@@ -189,18 +210,6 @@ const MapView: React.FC<MapViewProps> = ({ userLocation, onLocationSet, onOpenSt
                 className="w-12 h-12 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-full p-2 text-gray-800 dark:text-zinc-200 shadow-lg hover:bg-white dark:hover:bg-zinc-800 transition transform hover:scale-110" aria-label="Open Street View"
             >
                 <PegmanIcon className="w-full h-full" />
-            </button>
-            <button
-                onClick={handleZoomIn} 
-                className="w-12 h-12 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-full text-2xl font-bold text-gray-800 dark:text-zinc-200 shadow-lg hover:bg-white dark:hover:bg-zinc-800 transition transform hover:scale-110" aria-label="Zoom in"
-            >
-              +
-            </button>
-            <button 
-                onClick={handleZoomOut}
-                className="w-12 h-12 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm rounded-full text-2xl font-bold text-gray-800 dark:text-zinc-200 shadow-lg hover:bg-white dark:hover:bg-zinc-800 transition transform hover:scale-110" aria-label="Zoom out"
-            >
-              -
             </button>
         </div>
 

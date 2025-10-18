@@ -98,6 +98,16 @@ const Compass: React.FC<CompassProps> = ({ direction, heading, accuracy }) => {
   return (
     <div className="flex flex-col items-center gap-4">
         <div className="relative w-64 h-64 md:w-80 md:h-80 transition-all duration-500">
+        
+        {/* Static North arrow indicator */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10" aria-hidden="true">
+            <div className="w-0 h-0 
+                border-l-[8px] border-l-transparent
+                border-r-[8px] border-r-transparent
+                border-b-[12px] border-b-red-600">
+            </div>
+        </div>
+
         <div 
             ref={roseRef}
             className="w-full h-full rounded-full bg-white dark:bg-zinc-900 border-4 border-gray-200 dark:border-zinc-800 shadow-2xl flex items-center justify-center text-gray-700 dark:text-zinc-300 font-bold"

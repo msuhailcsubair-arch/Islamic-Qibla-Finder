@@ -159,7 +159,7 @@ const App: React.FC = () => {
   const getAddressFromCoordinates = useCallback(async (coords: Coordinates) => {
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const prompt = `Based on the latitude ${coords.latitude} and longitude ${coords.longitude}, provide a concise address (e.g., City, State/Region, Country). Format the response as a single line. Do not add any extra labels or text.`;
+        const prompt = `Based on the latitude ${coords.latitude} and longitude ${coords.longitude}, provide the address including the city, state/region, country, and postal code (pincode/zip code) if available. Format the response as a single, human-readable line. Example: 'Mountain View, California, United States, 94043'. Do not add any introductory text or labels.`;
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
