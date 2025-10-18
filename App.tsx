@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import Header from './components/Header';
@@ -10,97 +11,10 @@ import MapIcon from './components/MapIcon';
 import CompassIcon from './components/CompassIcon';
 import LocationModal from './components/LocationModal';
 import StreetView from './components/StreetView';
-import type { Coordinates, Theme, AccuracyMode } from './types';
+import ErrorDisplay from './components/ErrorDisplay';
+import LocationInfo from './components/LocationInfo';
+import type { Coordinates, Theme, AccuracyMode, GeolocationError } from './types';
 import { calculateQiblaDirection } from './utils';
-
-// --- Types ---
-type GeolocationError = {
-    message: string;
-    code?: number;
-}
-
-// --- Helper Components ---
-
-const ErrorDisplay: React.FC<{ error: GeolocationError; onRetry: () => void }> = ({ error, onRetry }) => {
-  const renderGuidance = () => {
-    switch (error.code) {
-      case 1: // PERMISSION_DENIED
-        return (
-          <ul className="list-disc list-inside text-left text-sm text-red-700 dark:text-red-300 space-y-1">
-            <li>Open your browser's settings and allow this site to access your location.</li>
-            <li>Ensure location services are enabled on your device (in your system settings).</li>
-          </ul>
-        );
-      case 2: // POSITION_UNAVAILABLE
-        return (
-          <ul className="list-disc list-inside text-left text-sm text-red-700 dark:text-red-300 space-y-1">
-            <li>Check your internet or data connection.</li>
-            <li>If you are indoors, try moving near a window or outdoors for a better signal.</li>
-          </ul>
-        );
-      case 3: // TIMEOUT
-        return (
-          <ul className="list-disc list-inside text-left text-sm text-red-700 dark:text-red-300 space-y-1">
-            <li>Your connection may be slow. Please check your Wi-Fi or mobile data.</li>
-          </ul>
-        );
-      default:
-        return null;
-    }
-  };
-    
-  return (
-    <div className="text-center bg-red-500/10 dark:bg-red-900/20 border border-red-500/30 dark:border-red-500/50 p-6 rounded-lg max-w-sm w-full">
-      <h2 className="text-xl font-bold text-red-600 dark:text-red-400">Error</h2>
-      <p className="text-red-800 dark:text-red-300 mt-2">{error.message}</p>
-      
-      {error.code && (
-        <div className="mt-4 pt-4 border-t border-red-500/20">
-          <h3 className="font-semibold text-red-700 dark:text-red-300 mb-2">What you can do:</h3>
-          {renderGuidance()}
-        </div>
-      )}
-
-      <button
-        onClick={onRetry}
-        className="mt-6 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 transform hover:scale-105"
-      >
-        Try Again
-      </button>
-    </div>
-  );
-};
-
-
-const LocationInfo: React.FC<{ direction: number; address: string; onRecalculate: () => void; variant?: 'default' | 'mapOverlay' }> = ({ direction, address, onRecalculate, variant = 'default' }) => {
-  if (variant === 'mapOverlay') {
-    return (
-      <div className="text-center bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-lg p-3 rounded-lg w-full">
-        <h2 className="text-2xl font-bold text-green-700 dark:text-green-500">{direction.toFixed(2)}°</h2>
-        <p className="text-xs text-gray-600 dark:text-zinc-400">{address}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col items-center gap-4 w-full">
-        <div className="text-center bg-white dark:bg-zinc-900 shadow-sm p-4 rounded-lg w-full max-w-md">
-            <h2 className="text-3xl font-bold text-green-700 dark:text-green-500">{direction.toFixed(2)}°</h2>
-            <p className="text-gray-500 dark:text-zinc-400">From True North</p>
-            <div className="text-xs text-gray-500 dark:text-zinc-500 mt-3 border-t border-gray-200 dark:border-zinc-800 pt-2">
-                Your Location: <span className="text-gray-700 dark:text-zinc-300">{address}</span>
-            </div>
-        </div>
-        <button
-            onClick={onRecalculate}
-            className="bg-gray-200 hover:bg-gray-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-800 dark:text-zinc-200 font-bold py-2 px-6 rounded-full transition-all duration-300 transform hover:scale-105"
-        >
-            Recalculate
-        </button>
-    </div>
-  );
-};
-
 
 // --- Main App Component ---
 
@@ -216,6 +130,8 @@ const App: React.FC = () => {
         await processNewCoordinates({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          altitude: position.coords.altitude ?? undefined,
         });
         setIsLoading(false);
       },
@@ -266,6 +182,7 @@ const App: React.FC = () => {
                        <LocationInfo
                            direction={qiblaDirection}
                            address={userAddress}
+                           location={userLocation}
                            onRecalculate={handleAutoDetectLocation}
                            variant="mapOverlay"
                        />
@@ -276,7 +193,12 @@ const App: React.FC = () => {
         return (
             <div className="flex flex-col items-center justify-center gap-8 p-4">
                 <Compass direction={qiblaDirection} heading={deviceHeading} accuracy={compassAccuracy} showCalibration={showCalibration} />
-                <LocationInfo direction={qiblaDirection} address={userAddress} onRecalculate={handleAutoDetectLocation} />
+                <LocationInfo 
+                    direction={qiblaDirection} 
+                    address={userAddress} 
+                    location={userLocation}
+                    onRecalculate={handleAutoDetectLocation} 
+                />
             </div>
         );
     }

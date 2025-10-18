@@ -1,3 +1,4 @@
+
 import React, { Fragment } from 'react';
 import type { Theme, AccuracyMode } from '../types';
 
@@ -20,6 +21,13 @@ const ThemeIcon: React.FC<{ theme: Theme }> = ({ theme }) => {
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onAutoDetect, onManualSet, currentTheme, onChangeTheme, currentAccuracy, onChangeAccuracy, onAbout }) => {
+  
+  const accuracyDescriptions: Record<AccuracyMode, string> = {
+    high: 'Best for outdoors. Uses GNSS (GPS, etc.) for pinpoint accuracy.',
+    medium: 'Balanced mode. Uses a mix of Wi-Fi, cell towers, and GNSS.',
+    low: 'Conserves battery. Relies mainly on Wi-Fi and cell towers.'
+  };
+
   return (
     <Fragment>
       {/* Backdrop */}
@@ -72,7 +80,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onAutoDetect, onManu
           </ul>
 
            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-zinc-800">
-             <label className="px-3 text-sm font-semibold text-gray-500 dark:text-zinc-400">Accuracy</label>
+             <label className="px-3 text-sm font-semibold text-gray-500 dark:text-zinc-400">Location Accuracy</label>
              <div className="mt-2 flex rounded-md bg-gray-100 dark:bg-zinc-800 p-1">
                  {(['high', 'medium', 'low'] as AccuracyMode[]).map(accuracy => (
                      <button
@@ -85,7 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onAutoDetect, onManu
                  ))}
              </div>
              <p className="px-3 mt-2 text-xs text-gray-500 dark:text-zinc-500">
-                High accuracy is best for pinpoint location but uses more battery. Low accuracy conserves battery life.
+                {accuracyDescriptions[currentAccuracy]}
              </p>
           </div>
 
