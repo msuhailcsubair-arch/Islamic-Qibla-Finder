@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
+import Header from './components/Header';
 import Compass from './components/Compass';
 import Spinner from './components/Spinner';
 import Sidebar from './components/Menu';
@@ -7,83 +8,149 @@ import AboutModal from './components/AboutModal';
 import MapView from './components/MapView';
 import MapIcon from './components/MapIcon';
 import CompassIcon from './components/CompassIcon';
+import LocationModal from './components/LocationModal';
 import type { Coordinates } from './types';
+import { calculateQiblaDirection } from './utils';
 
-// --- Constants ---
-const KAABA_COORDS: Coordinates = {
-  latitude: 21.4225,
-  longitude: 39.8262,
-};
+// --- Types ---
+export type Theme = 'auto' | 'light' | 'dark';
+export type AccuracyMode = 'high' | 'medium' | 'low';
+type GeolocationError = {
+    message: string;
+    code?: number;
+}
 
 // --- Helper Components ---
 
-const ErrorDisplay: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
-  <div className="text-center bg-red-500/10 dark:bg-red-900/20 border border-red-500/30 dark:border-red-500/50 p-6 rounded-lg max-w-sm">
-    <h2 className="text-xl font-bold text-red-600 dark:text-red-400">Error</h2>
-    <p className="text-slate-700 dark:text-slate-300 mt-2">{message}</p>
-    <button
-      onClick={onRetry}
-      className="mt-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-full transition-all duration-300"
-    >
-      Try Again
-    </button>
-  </div>
-);
+const ErrorDisplay: React.FC<{ error: GeolocationError; onRetry: () => void }> = ({ error, onRetry }) => {
+  const renderGuidance = () => {
+    switch (error.code) {
+      case 1: // PERMISSION_DENIED
+        return (
+          <ul className="list-disc list-inside text-left text-sm text-red-700 dark:text-red-300 space-y-1">
+            <li>Open your browser's settings and allow this site to access your location.</li>
+            <li>Ensure location services are enabled on your device (in your system settings).</li>
+          </ul>
+        );
+      case 2: // POSITION_UNAVAILABLE
+        return (
+          <ul className="list-disc list-inside text-left text-sm text-red-700 dark:text-red-300 space-y-1">
+            <li>Check your internet or data connection.</li>
+            <li>If you are indoors, try moving near a window or outdoors for a better signal.</li>
+          </ul>
+        );
+      case 3: // TIMEOUT
+        return (
+          <ul className="list-disc list-inside text-left text-sm text-red-700 dark:text-red-300 space-y-1">
+            <li>Your connection may be slow. Please check your Wi-Fi or mobile data.</li>
+          </ul>
+        );
+      default:
+        return null;
+    }
+  };
+    
+  return (
+    <div className="text-center bg-red-500/10 dark:bg-red-900/20 border border-red-500/30 dark:border-red-500/50 p-6 rounded-lg max-w-sm w-full">
+      <h2 className="text-xl font-bold text-red-600 dark:text-red-400">Error</h2>
+      <p className="text-red-800 dark:text-red-300 mt-2">{error.message}</p>
+      
+      {error.code && (
+        <div className="mt-4 pt-4 border-t border-red-500/20">
+          <h3 className="font-semibold text-red-700 dark:text-red-300 mb-2">What you can do:</h3>
+          {renderGuidance()}
+        </div>
+      )}
 
-const LocationInfo: React.FC<{ direction: number; address: string; onRecalculate: () => void }> = ({ direction, address, onRecalculate }) => (
+      <button
+        onClick={onRetry}
+        className="mt-6 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-full transition-all duration-300"
+      >
+        Try Again
+      </button>
+    </div>
+  );
+};
+
+
+const LocationInfo: React.FC<{ direction: number; address: string; onRecalculate: () => void; variant?: 'default' | 'mapOverlay' }> = ({ direction, address, onRecalculate, variant = 'default' }) => {
+  if (variant === 'mapOverlay') {
+    return (
+      <div className="text-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-lg p-3 rounded-lg w-full">
+        <h2 className="text-2xl font-bold text-green-700 dark:text-green-500">{direction.toFixed(2)}°</h2>
+        <p className="text-xs text-gray-600 dark:text-slate-400">{address}</p>
+      </div>
+    );
+  }
+
+  return (
     <div className="flex flex-col items-center gap-4 w-full">
-        <div className="text-center bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg w-full max-w-md">
-            <h2 className="text-3xl font-bold text-teal-600 dark:text-teal-300">{direction.toFixed(2)}°</h2>
-            <p className="text-slate-500 dark:text-slate-400">From True North</p>
-            <div className="text-xs text-slate-500 dark:text-slate-500 mt-3 border-t border-slate-300 dark:border-slate-700 pt-2">
-                Your Location: <span className="text-slate-700 dark:text-slate-400">{address}</span>
+        <div className="text-center bg-white dark:bg-slate-900 shadow-sm p-4 rounded-lg w-full max-w-md">
+            <h2 className="text-3xl font-bold text-green-700 dark:text-green-500">{direction.toFixed(2)}°</h2>
+            <p className="text-gray-500 dark:text-slate-400">From True North</p>
+            <div className="text-xs text-gray-500 dark:text-slate-500 mt-3 border-t border-gray-200 dark:border-slate-800 pt-2">
+                Your Location: <span className="text-gray-700 dark:text-slate-300">{address}</span>
             </div>
         </div>
         <button
             onClick={onRecalculate}
-            className="bg-slate-300 hover:bg-slate-400 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-bold py-2 px-6 rounded-full transition-all duration-300"
+            className="bg-gray-200 hover:bg-gray-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 font-bold py-2 px-6 rounded-full transition-all duration-300"
         >
             Recalculate
         </button>
     </div>
-);
+  );
+};
 
 
 // --- Main App Component ---
-
-type Theme = 'auto' | 'light' | 'dark';
 
 const App: React.FC = () => {
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [userAddress, setUserAddress] = useState<string | null>(null);
   const [qiblaDirection, setQiblaDirection] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [deviceHeading, setDeviceHeading] = useState<number | null>(null);
+  const [error, setError] = useState<GeolocationError | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [viewMode, setViewMode] = useState<'compass' | 'map'>('compass');
   const [theme, setTheme] = useState<Theme>('auto');
+  const [accuracyMode, setAccuracyMode] = useState<AccuracyMode>('high');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
   useEffect(() => {
     if (theme === 'auto') {
-      const hour = new Date().getHours();
-      // Day time between 6 AM and 6 PM
-      if (hour > 6 && hour < 18) {
-        document.documentElement.classList.remove('dark');
-      } else {
-        document.documentElement.classList.add('dark');
-      }
-    } else if (theme === 'light') {
-      document.documentElement.classList.remove('dark');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.classList.toggle('dark', prefersDark);
     } else {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.toggle('dark', theme === 'dark');
     }
   }, [theme]);
+
+  // Effect to handle device orientation for live compass
+  useEffect(() => {
+    const handleOrientation = (event: DeviceOrientationEvent) => {
+      // Use webkitCompassHeading for iOS compatibility
+      const heading = (event as any).webkitCompassHeading ?? event.alpha;
+      if (heading !== null) {
+        setDeviceHeading(heading);
+      }
+    };
+    
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', handleOrientation);
+    }
+
+    return () => {
+      window.removeEventListener('deviceorientation', handleOrientation);
+    };
+  }, []);
 
   const getAddressFromCoordinates = useCallback(async (coords: Coordinates) => {
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const prompt = `Based on the latitude ${coords.latitude} and longitude ${coords.longitude}, provide the city, district, state, and pincode. Format the response as a single, comma-separated line like this: City, District, State, Pincode. Do not add any extra labels or text.`;
+        const prompt = `Based on the latitude ${coords.latitude} and longitude ${coords.longitude}, provide a concise address (e.g., City, State/Region, Country). Format the response as a single line. Do not add any extra labels or text.`;
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
@@ -98,29 +165,17 @@ const App: React.FC = () => {
         }
     } catch (apiError) {
         console.error("Failed to fetch address from Gemini API:", apiError);
-        // Fallback to coordinates if the API fails
         setUserAddress(`Lat: ${coords.latitude.toFixed(4)}, Lon: ${coords.longitude.toFixed(4)}`);
     }
   }, []);
 
-  const calculateQiblaDirection = (userCoords: Coordinates) => {
-    const lat1 = userCoords.latitude * (Math.PI / 180);
-    const lon1 = userCoords.longitude * (Math.PI / 180);
-    const lat2 = KAABA_COORDS.latitude * (Math.PI / 180);
-    const lon2 = KAABA_COORDS.longitude * (Math.PI / 180);
+  const processNewCoordinates = useCallback(async (coords: Coordinates) => {
+    setUserLocation(coords);
+    setQiblaDirection(calculateQiblaDirection(coords));
+    await getAddressFromCoordinates(coords);
+  }, [getAddressFromCoordinates]);
 
-    const lonDiff = lon2 - lon1;
-
-    const y = Math.sin(lonDiff) * Math.cos(lat2);
-    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lonDiff);
-
-    let bearing = Math.atan2(y, x) * (180 / Math.PI);
-    bearing = (bearing + 360) % 360; // Normalize to 0-360
-
-    setQiblaDirection(bearing);
-  };
-
-  const handleFindQibla = useCallback(() => {
+  const handleAutoDetectLocation = useCallback(() => {
     setIsLoading(true);
     setError(null);
     setUserLocation(null);
@@ -128,115 +183,134 @@ const App: React.FC = () => {
     setQiblaDirection(null);
 
     if (!navigator.geolocation) {
-      setError("Geolocation is not supported by your browser.");
+      setError({ message: "Geolocation is not supported by your browser." });
       setIsLoading(false);
       return;
     }
+    
+    const getGeolocationOptions = (): PositionOptions => {
+        switch (accuracyMode) {
+            case 'high': return { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 };
+            case 'medium': return { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 };
+            case 'low': return { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 };
+            default: return { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 };
+        }
+    };
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const coords: Coordinates = {
+        await processNewCoordinates({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
-        };
-        setUserLocation(coords);
-        calculateQiblaDirection(coords);
-        await getAddressFromCoordinates(coords);
+        });
         setIsLoading(false);
       },
       (geoError) => {
-        switch (geoError.code) {
-          case geoError.PERMISSION_DENIED:
-            setError("Location access denied. Please enable it in your browser settings to find the Qibla.");
-            break;
-          case geoError.POSITION_UNAVAILABLE:
-            setError("Location information is unavailable.");
-            break;
-          case geoError.TIMEOUT:
-            setError("The request to get user location timed out.");
-            break;
-          default:
-            setError("An unknown error occurred while getting location.");
-            break;
-        }
+        setError({ message: `Error: ${geoError.message}`, code: geoError.code });
         setIsLoading(false);
       },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      getGeolocationOptions()
     );
-  }, [getAddressFromCoordinates]);
+  }, [processNewCoordinates, accuracyMode]);
   
   useEffect(() => {
-    handleFindQibla();
-  }, [handleFindQibla]);
+    handleAutoDetectLocation();
+  }, [handleAutoDetectLocation]);
+
+  const handleNewLocationSet = async (coords: Coordinates) => {
+    if (isLocationModalOpen) setIsLocationModalOpen(false);
+    setViewMode('compass');
+    setIsLoading(true);
+    setError(null);
+    setUserAddress(null);
+    setQiblaDirection(null);
+    
+    setTimeout(async () => {
+        await processNewCoordinates(coords);
+        setIsLoading(false);
+    }, 100);
+  };
   
   const renderContent = () => {
     if (isLoading) {
         return <Spinner />;
     }
     if (error) {
-        return <ErrorDisplay message={error} onRetry={handleFindQibla} />;
+        return <ErrorDisplay error={error} onRetry={handleAutoDetectLocation} />;
     }
-    if (qiblaDirection !== null && userAddress) {
+    if (qiblaDirection !== null && userAddress && userLocation) {
+        if (viewMode === 'map') {
+            return (
+                <div className="flex-grow w-full h-full relative">
+                    <MapView 
+                        userLocation={userLocation}
+                        onLocationSet={handleNewLocationSet}
+                    />
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-10">
+                       <LocationInfo
+                           direction={qiblaDirection}
+                           address={userAddress}
+                           onRecalculate={handleAutoDetectLocation}
+                           variant="mapOverlay"
+                       />
+                    </div>
+                </div>
+            );
+        }
         return (
-          <div className="flex flex-col items-center gap-6 md:gap-8">
-            {viewMode === 'compass' ? <Compass direction={qiblaDirection} /> : <MapView qiblaDirection={qiblaDirection} />}
-            <LocationInfo direction={qiblaDirection} address={userAddress} onRecalculate={handleFindQibla} />
-          </div>
+            <div className="flex flex-col items-center justify-center gap-8 p-4">
+                <Compass direction={qiblaDirection} heading={deviceHeading} />
+                <LocationInfo direction={qiblaDirection} address={userAddress} onRecalculate={handleAutoDetectLocation} />
+            </div>
         );
     }
     return <Spinner />;
-};
+  };
 
   return (
-    <main className="min-h-screen w-full flex flex-col items-center justify-center bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 relative transition-colors duration-500">
-        <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="absolute top-4 right-4 z-20 p-2 rounded-full bg-slate-200/50 dark:bg-slate-800/50 hover:bg-slate-300/70 dark:hover:bg-slate-700/70 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 focus:ring-teal-500"
-            aria-label="Open menu"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-800 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-        </button>
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100">
+      <Header onMenuClick={() => setIsSidebarOpen(true)} />
+      
+      <main className="flex-grow flex flex-col items-center justify-center overflow-hidden">
+          {renderContent()}
+      </main>
 
-        <Sidebar 
-            isOpen={isSidebarOpen}
-            onClose={() => setIsSidebarOpen(false)}
-            onChangeLocation={() => {
-                handleFindQibla();
-                setIsSidebarOpen(false);
-            }}
-            currentTheme={theme}
-            onChangeTheme={setTheme}
-            onAbout={() => {
-                setIsAboutModalOpen(true);
-                setIsSidebarOpen(false);
-            }}
-        />
-        
-        <AboutModal
-            isOpen={isAboutModalOpen}
-            onClose={() => setIsAboutModalOpen(false)}
-        />
+      {!isLoading && !error && (
+         <footer className={`flex-shrink-0 w-full p-2 flex justify-end pr-5 z-20 ${viewMode === 'map' ? 'absolute bottom-0 bg-transparent' : 'relative'}`}>
+             <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm p-1 rounded-full flex shadow-lg">
+                 <button 
+                     onClick={() => setViewMode('compass')}
+                     className={`p-3 rounded-full transition-colors ${viewMode === 'compass' ? 'bg-green-700 text-white' : 'text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800'}`}
+                     aria-label="Switch to Compass View"
+                 >
+                     <CompassIcon />
+                 </button>
+                 <button 
+                     onClick={() => setViewMode('map')}
+                     className={`p-3 rounded-full transition-colors ${viewMode === 'map' ? 'bg-green-700 text-white' : 'text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800'}`}
+                     aria-label="Switch to Map View"
+                 >
+                     <MapIcon />
+                 </button>
+             </div>
+         </footer>
+      )}
 
-        <div className="w-full max-w-lg mx-auto flex items-center justify-center">
-            {renderContent()}
-        </div>
-        
-        {qiblaDirection !== null && (
-            <button
-              onClick={() => setViewMode(prev => prev === 'compass' ? 'map' : 'compass')}
-              className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-teal-500 hover:bg-teal-600 text-white shadow-lg flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 focus:ring-teal-400"
-              aria-label={`Switch to ${viewMode === 'compass' ? 'map' : 'compass'} view`}
-            >
-              {viewMode === 'compass' ? <MapIcon /> : <CompassIcon />}
-            </button>
-        )}
+      <Sidebar 
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onAutoDetect={() => { setIsSidebarOpen(false); handleAutoDetectLocation(); }}
+        onManualSet={() => { setIsSidebarOpen(false); setIsLocationModalOpen(true); }}
+        onAbout={() => { setIsSidebarOpen(false); setIsAboutModalOpen(true); }}
+        currentTheme={theme}
+        onChangeTheme={setTheme}
+        currentAccuracy={accuracyMode}
+        onChangeAccuracy={setAccuracyMode}
+      />
 
-        <footer className="absolute bottom-4 text-center text-slate-500 dark:text-slate-600 text-sm max-w-xs md:max-w-none">
-            <p>Designed for spiritual guidance. Always verify with a secondary source if possible.</p>
-        </footer>
-    </main>
+      <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} />
+      <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} onLocationSet={handleNewLocationSet} />
+    </div>
   );
 };
 

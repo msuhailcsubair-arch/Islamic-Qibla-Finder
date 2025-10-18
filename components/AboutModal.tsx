@@ -22,35 +22,35 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                 aria-modal="true"
                 aria-labelledby="about-modal-title"
             >
-                <div className={`bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-md transform transition-all duration-300 ${isOpen ? 'scale-100' : 'scale-95'}`}>
-                    <div className="p-5 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                        <h2 id="about-modal-title" className="text-xl font-bold text-slate-800 dark:text-slate-200">About This App</h2>
-                        <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                <div className={`bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-md transform transition-all duration-300 ${isOpen ? 'scale-100' : 'scale-95'}`}>
+                    <div className="p-5 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center">
+                        <h2 id="about-modal-title" className="text-xl font-bold text-gray-800 dark:text-slate-200">About This App</h2>
+                        <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-green-600">
+                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </div>
 
-                    <div className="p-6 space-y-4 text-slate-600 dark:text-slate-300">
+                    <div className="p-6 space-y-4 text-gray-600 dark:text-slate-300">
                         <div className="flex justify-between">
-                            <span className="font-semibold text-slate-700 dark:text-slate-200">Developed & Created by:</span>
+                            <span className="font-semibold text-gray-700 dark:text-slate-200">Developed & Created by:</span>
                             <span>Suhail Zubair</span>
                         </div>
                          <div className="flex justify-between">
-                            <span className="font-semibold text-slate-700 dark:text-slate-200">Version:</span>
+                            <span className="font-semibold text-gray-700 dark:text-slate-200">Version:</span>
                             <span>1.0.0</span>
                         </div>
                          <div className="text-center pt-2">
-                            <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1">Purpose</p>
+                            <p className="font-semibold text-gray-700 dark:text-slate-200 mb-1">Purpose</p>
                             <p className="text-sm">To preserve and enrich the correct Qibla.</p>
                         </div>
-                        <div className="pt-2 border-t border-slate-200 dark:border-slate-700 space-y-2">
+                        <div className="pt-2 border-t border-gray-200 dark:border-slate-800 space-y-2">
                              <div className="flex justify-between items-center">
-                                <span className="font-semibold text-slate-700 dark:text-slate-200">Email:</span>
-                                <a href="mailto:msuhailcsubair@gmail.com" className="text-teal-600 dark:text-teal-400 hover:underline">msuhailcsubair@gmail.com</a>
+                                <span className="font-semibold text-gray-700 dark:text-slate-200">Email:</span>
+                                <a href="mailto:msuhailcsubair@gmail.com" className="text-green-700 dark:text-green-500 hover:underline">msuhailcsubair@gmail.com</a>
                             </div>
                              <div className="flex justify-between items-center">
-                                <span className="font-semibold text-slate-700 dark:text-slate-200">Website:</span>
-                                <a href="https://thiswebsitename.com" target="_blank" rel="noopener noreferrer" className="text-teal-600 dark:text-teal-400 hover:underline">thiswebsitename.com</a>
+                                <span className="font-semibold text-gray-700 dark:text-slate-200">Website:</span>
+                                <a href="https://islam360versal.com" target="_blank" rel="noopener noreferrer" className="text-green-700 dark:text-green-500 hover:underline">islam360versal.com</a>
                             </div>
                         </div>
                     </div>
