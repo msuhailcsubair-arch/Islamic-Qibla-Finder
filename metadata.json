@@ -1,0 +1,7 @@
+{
+  "name": "Islamic Qibla Finder",
+  "description": "An elegant and simple web application to help Muslims find the direction of the Qibla (Kaaba in Mecca) from anywhere in the world using their device's location.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
