@@ -40,15 +40,14 @@ const Compass: React.FC<CompassProps> = ({ direction, heading, accuracy, showCal
   useEffect(() => {
     const currentHeading = heading ?? 0;
     
-    // Per the request, the Qibla pointer is now "stuck" to the NW position (315°).
-    const targetPointerRot = 315;
+    // The compass rose rotates to always point North up, relative to the device's orientation.
+    // If the device heading is 90° (East), the rose rotates -90° to bring 'N' back to the top.
+    const targetRoseRot = -currentHeading;
 
-    // The entire compass rose rotates to align the NW mark (where the pointer is)
-    // with the correct Qibla direction, relative to the phone's current heading.
-    // The final angle of the pointer on the screen needs to be (direction - heading).
-    // Since the pointer is fixed at 315° on the rose, the rose's 0° (N) mark must rotate 
-    // to (direction - heading - 315) for the pointer to align correctly.
-    const targetRoseRot = direction - currentHeading - 315;
+    // The Qibla pointer's rotation is relative to the rose.
+    // Since the rose's 'N' now always points to true north, the pointer simply
+    // needs to be rotated to the calculated Qibla direction angle.
+    const targetPointerRot = direction;
 
     // Linear interpolation function that handles angle wrapping for shortest path
     const lerp = (start: number, end: number, amt: number) => {
