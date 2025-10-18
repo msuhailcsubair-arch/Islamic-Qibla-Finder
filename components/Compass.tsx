@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface CompassProps {
   direction: number;
   heading: number | null;
   accuracy: number | null;
+  showCalibration: boolean;
 }
 
 const KaabaIcon: React.FC = () => (
@@ -29,25 +30,12 @@ const KaabaIcon: React.FC = () => (
 );
 
 
-const Compass: React.FC<CompassProps> = ({ direction, heading, accuracy }) => {
+const Compass: React.FC<CompassProps> = ({ direction, heading, accuracy, showCalibration }) => {
   const roseRef = useRef<HTMLDivElement>(null);
   const pointerRef = useRef<HTMLDivElement>(null);
   const animatedRoseRot = useRef(0);
   const animatedPointerRot = useRef(0);
-  // FIX: Initialize useRef with null and update the type to allow null.
   const animationFrameId = useRef<number | null>(null);
-  
-  const [showCalibration, setShowCalibration] = useState(false);
-
-  useEffect(() => {
-    // A webkitCompassAccuracy value of -1 means calibration is needed.
-    // A higher value (e.g., > 30 degrees) means low accuracy.
-    if (accuracy !== null && (accuracy < 0 || accuracy > 30)) {
-        setShowCalibration(true);
-    } else {
-        setShowCalibration(false);
-    }
-  }, [accuracy]);
   
   useEffect(() => {
     const currentHeading = heading ?? 0;

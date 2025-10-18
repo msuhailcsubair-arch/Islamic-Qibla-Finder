@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import type { Theme, AccuracyMode } from '../App';
+import type { Theme, AccuracyMode } from '../types';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -84,6 +84,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onAutoDetect, onManu
                      </button>
                  ))}
              </div>
+             <p className="px-3 mt-2 text-xs text-gray-500 dark:text-zinc-500">
+                High accuracy is best for pinpoint location but uses more battery. Low accuracy conserves battery life.
+             </p>
           </div>
 
           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-zinc-800">

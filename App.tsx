@@ -10,12 +10,10 @@ import MapIcon from './components/MapIcon';
 import CompassIcon from './components/CompassIcon';
 import LocationModal from './components/LocationModal';
 import StreetView from './components/StreetView';
-import type { Coordinates } from './types';
+import type { Coordinates, Theme, AccuracyMode } from './types';
 import { calculateQiblaDirection } from './utils';
 
 // --- Types ---
-export type Theme = 'auto' | 'light' | 'dark';
-export type AccuracyMode = 'high' | 'medium' | 'low';
 type GeolocationError = {
     message: string;
     code?: number;
@@ -121,6 +119,7 @@ const App: React.FC = () => {
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isStreetViewOpen, setIsStreetViewOpen] = useState(false);
+  const [showCalibration, setShowCalibration] = useState(false);
 
 
   useEffect(() => {
@@ -144,6 +143,12 @@ const App: React.FC = () => {
       }
       if (accuracy !== undefined) {
         setCompassAccuracy(accuracy);
+        // Logic to detect when compass accuracy is low
+        if (accuracy < 0 || accuracy > 30) {
+            setShowCalibration(true);
+        } else {
+            setShowCalibration(false);
+        }
       }
     };
     
@@ -270,7 +275,7 @@ const App: React.FC = () => {
         }
         return (
             <div className="flex flex-col items-center justify-center gap-8 p-4">
-                <Compass direction={qiblaDirection} heading={deviceHeading} accuracy={compassAccuracy} />
+                <Compass direction={qiblaDirection} heading={deviceHeading} accuracy={compassAccuracy} showCalibration={showCalibration} />
                 <LocationInfo direction={qiblaDirection} address={userAddress} onRecalculate={handleAutoDetectLocation} />
             </div>
         );
