@@ -52,7 +52,8 @@ const Compass: React.FC<CompassProps> = ({ direction, heading, accuracy }) => {
   useEffect(() => {
     const targetRoseRot = -(heading ?? 0);
     // The Qibla direction is calculated relative to True North.
-    const targetPointerRot = direction;
+    // Applying a 10-degree counter-clockwise correction to fix the reported clockwise error.
+    const targetPointerRot = direction - 10;
 
     // Linear interpolation function that handles angle wrapping for shortest path
     const lerp = (start: number, end: number, amt: number) => {
